@@ -1,0 +1,27 @@
+name: coze-agent-docker
+services:
+  chat:
+    build:
+      context: .
+      args:
+        NODE_IMAGE: "${COZE_DOCKER_NODE_IMAGE:-node:24-alpine}"
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8766:8766"
+      - "${COZE_DOCKER_LAN_IP:?Set COZE_DOCKER_LAN_IP}:8766:8766"
+    environment:
+      COZE_CONTAINER_HOSTS: "127.0.0.1:8766,localhost:8766,${COZE_DOCKER_LAN_IP}:8766"
+      COZE_PUBLIC_ORIGIN: "${COZE_PUBLIC_ORIGIN:-}"
+    secrets:
+      - coze_api_token
+      - coze_access_code
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8766/health').then(r => { if (!r.ok) process.exitCode = 1 }).catch(() => { process.exitCode = 1 })"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+secrets:
+  coze_api_token:
+    environment: COZE_DOCKER_API_TOKEN
+  coze_access_code:
+    environment: COZE_DOCKER_ACCESS_CODE

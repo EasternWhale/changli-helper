@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>长离助手</title>
+<style>
+:root{color-scheme:light;--ink:#322219;--muted:#6c574a;--line:#eadbce;--paper:#fdf7f0;--accent:#ac4b27;--accent-hover:#913d1e}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:15px/1.65 Inter,"Microsoft YaHei",system-ui,sans-serif;background:#fff}
+.shell{height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+aside{border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;margin:0;font-size:16px;padding-block:13px}
+.mark{display:grid;place-items:center;width:30px;height:30px;border-radius:7px;background:var(--accent);color:white}
+main{min-height:0;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+main:has(#workflows:not(.active)){grid-template-rows:minmax(0,max-content) auto;align-content:start}
+.inner{width:min(100%,1120px);margin-inline:auto;padding-inline:clamp(16px,4vw,38px)}
+.scroll{overflow:auto;min-height:0}
+#messages{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding-block:clamp(20px,4vh,46px)}
+#messages:empty{padding-block:0;height:20px}
+#workflows{padding-top:clamp(18px,4vh,44px)}
+.welcome{width:100%}
+.welcome h1{font-size:clamp(28px,4vw,43px);line-height:1.2;letter-spacing:-.045em;margin:0 0 8px}
+.welcome p{margin:0 0 24px;color:var(--muted)}
+nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+button,input,textarea{font:inherit}
+button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 13px;border-radius:7px;cursor:pointer}
+button:hover{background:#fff2e7;border-color:#d6a68c}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.55;cursor:wait}
+nav button{min-width:0;text-align:left;padding:15px 16px;min-height:87px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
+nav strong{font-size:15px}
+nav small{color:var(--muted);line-height:1.45}
+nav button[aria-expanded=true]{background:#fff1e7;border-color:var(--accent)}
+#workflows.active nav{display:flex;flex-wrap:wrap;gap:7px}
+#workflows.active nav button{min-height:0;padding:5px 9px}
+#workflows.active nav small{display:none}
+#reset{margin-left:auto}
+.entry{max-width:86%;border:1px solid var(--line);padding:10px 14px;border-radius:10px;overflow-wrap:anywhere}
+.entry strong{display:block;color:var(--muted);font-size:12px}
+.entry p{margin:3px 0 0;white-space:pre-wrap}
+.user{align-self:flex-end;background:var(--paper)}
+.error{border-color:#c6c6c6}
+footer{min-width:0;border-top:1px solid var(--line);padding-block:12px 8px}
+.chips{display:flex;gap:7px;overflow:auto;margin-bottom:10px}
+.chips button{border-radius:999px;white-space:nowrap;font-size:12px}
+form{display:flex;align-items:end;gap:9px}
+textarea,input{border:1px solid var(--line);border-radius:7px;padding:8px 11px;background:var(--paper);color:var(--ink);min-width:0}
+textarea{flex:1;resize:vertical;min-height:49px;max-height:24dvh}
+#send,#fill-task{background:var(--accent);color:white;border-color:var(--accent)}
+#send:hover,#fill-task:hover{background:var(--accent-hover)}
+#status{font-size:12px;color:var(--muted);margin:4px 0 0;min-height:18px}
+#task{width:100%;margin-top:12px;border:1px solid var(--line);border-radius:9px;padding:14px;background:var(--paper)}
+.task-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.task-fields label{display:grid;gap:4px;font-size:13px}
+@media(max-width:680px){nav{grid-template-columns:repeat(2,minmax(0,1fr))}nav button{min-height:65px;padding:8px}.task-fields{grid-template-columns:1fr}.welcome p{margin-bottom:15px}}
+</style>
+<script src="/app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+  <aside><div class="inner brand"><span class="mark" aria-hidden="true">长</span><strong>长离助手</strong><button id="reset" type="button">＋ 新对话</button></div></aside>
+  <main>
+    <div class="scroll">
+      <section class="inner" id="workflows">
+        <div class="welcome"><h1>今天想做什么？</h1><p>选择任务，填写条件，再把提问发给长离助手。</p></div>
+        <nav aria-label="功能导航"></nav>
+        <div id="task" hidden>
+          <div class="task-fields">
+            <label>产品、品牌或品类<input id="product" maxlength="400" placeholder="例如：蜀绣笔记本"></label>
+            <label><span id="goal-label"></span><input id="goal" maxlength="400"></label>
+          </div>
+          <button id="fill-task" type="button">填入提问</button>
+          <button id="close-task" type="button">收起</button>
+        </div>
+      </section>
+      <section id="messages" class="inner" role="log" aria-label="聊天记录"></section>
+    </div>
+    <footer><div class="inner">
+      <div class="chips" aria-label="快捷提问">
+        <button type="button" data-prompt="你能帮我做什么？">你能帮我做什么？</button>
+        <button type="button" data-prompt="帮我给蜀绣笔记本写短视频文案。">帮我给蜀绣笔记本写短视频文案</button>
+        <button type="button" data-prompt="推荐适合酒店大堂的非遗装饰产品。">推荐适合酒店大堂的非遗装饰产品</button>
+        <button type="button" data-prompt="手工竹编收纳筐适合卖给谁？">手工竹编收纳筐适合卖给谁？</button>
+        <button type="button" data-prompt="帮我写一个苏绣品牌的店铺故事。">帮我写一个苏绣品牌的店铺故事</button>
+      </div>
+      <form>
+        <textarea id="message" rows="2" maxlength="4000" aria-label="消息" placeholder="问问长离助手，例如帮我给蜀绣笔记本写一段短视频文案" required></textarea>
+        <button id="send" type="submit">发送</button>
+      </form>
+      <p id="status" role="status"></p>
+    </div></footer>
+  </main>
+</div>
+</body>
+</html>

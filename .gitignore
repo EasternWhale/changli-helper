@@ -1,0 +1,9 @@
+/.local/
+/desktop/connection.txt
+**/bin/
+**/obj/
+*.dpapi
+*.exe
+*.zip
+.env
+.env.*
